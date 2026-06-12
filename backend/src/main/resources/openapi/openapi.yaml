@@ -1,0 +1,901 @@
+openapi: 3.0.3
+info:
+  title: Internal CMS and User Portal API
+  version: 1.0.0
+  description: REST contract for internal content management, employee portal discovery, notice acknowledgement, administration, audit, and reporting.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Session
+  - name: Portal
+  - name: Content
+  - name: Search
+  - name: Notices
+  - name: Bookmarks
+  - name: Administration
+  - name: Reporting
+paths:
+  /me:
+    get:
+      tags: [Session]
+      summary: Get the current signed-in user
+      operationId: getCurrentUser
+      responses:
+        "200":
+          description: Current user profile and permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /portal/feed:
+    get:
+      tags: [Portal]
+      summary: Get personalized portal feed
+      operationId: getPortalFeed
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - name: contentType
+          in: query
+          schema:
+            $ref: "#/components/schemas/ContentType"
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Feed of visible published content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentPage"
+
+  /content:
+    get:
+      tags: [Content]
+      summary: List content visible to the caller or manageable by the caller
+      operationId: listContent
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ContentStatus"
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/ContentType"
+        - name: ownerUserId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Content list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentPage"
+    post:
+      tags: [Content]
+      summary: Create a draft content item
+      operationId: createContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentCreateRequest"
+      responses:
+        "201":
+          description: Created content draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /content/{contentId}:
+    get:
+      tags: [Content]
+      summary: Get a content detail
+      operationId: getContent
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      responses:
+        "200":
+          description: Content detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDetail"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Content]
+      summary: Update a draft or editable content item
+      operationId: updateContent
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentUpdateRequest"
+      responses:
+        "200":
+          description: Updated content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Content]
+      summary: Archive a content item
+      operationId: archiveContentByDelete
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      responses:
+        "204":
+          description: Content archived
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /content/{contentId}/submit:
+    post:
+      tags: [Content]
+      summary: Submit content for review
+      operationId: submitContent
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      responses:
+        "200":
+          description: Submitted content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDetail"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /content/{contentId}/approve:
+    post:
+      tags: [Content]
+      summary: Approve submitted content
+      operationId: approveContent
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LifecycleActionRequest"
+      responses:
+        "200":
+          description: Approved content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDetail"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /content/{contentId}/publish:
+    post:
+      tags: [Content]
+      summary: Publish or schedule approved content
+      operationId: publishContent
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishRequest"
+      responses:
+        "200":
+          description: Published or scheduled content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /content/{contentId}/archive:
+    post:
+      tags: [Content]
+      summary: Archive published or scheduled content
+      operationId: archiveContent
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LifecycleActionRequest"
+      responses:
+        "200":
+          description: Archived content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentDetail"
+
+  /search:
+    get:
+      tags: [Search]
+      summary: Search visible published content
+      operationId: searchContent
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/ContentType"
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+      responses:
+        "200":
+          description: Search results filtered by caller visibility
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResults"
+
+  /notices/required:
+    get:
+      tags: [Notices]
+      summary: List required notices for the current user
+      operationId: listRequiredNotices
+      responses:
+        "200":
+          description: Required notices and acknowledgement state
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NoticeRequiredItem"
+
+  /notices/{noticeId}/acknowledgements:
+    put:
+      tags: [Notices]
+      summary: Acknowledge a required notice
+      operationId: acknowledgeNotice
+      parameters:
+        - name: noticeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Acknowledgement recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoticeAcknowledgement"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /bookmarks:
+    get:
+      tags: [Bookmarks]
+      summary: List current user's bookmarks
+      operationId: listBookmarks
+      responses:
+        "200":
+          description: Bookmarked visible content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentPage"
+    post:
+      tags: [Bookmarks]
+      summary: Bookmark a content item
+      operationId: createBookmark
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contentId]
+              properties:
+                contentId:
+                  type: string
+      responses:
+        "201":
+          description: Bookmark created
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /bookmarks/{contentId}:
+    delete:
+      tags: [Bookmarks]
+      summary: Remove a bookmark
+      operationId: deleteBookmark
+      parameters:
+        - $ref: "#/components/parameters/ContentId"
+      responses:
+        "204":
+          description: Bookmark removed
+
+  /admin/categories:
+    get:
+      tags: [Administration]
+      summary: List categories
+      operationId: listCategories
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      tags: [Administration]
+      summary: Create a category
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryWriteRequest"
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /admin/roles:
+    get:
+      tags: [Administration]
+      summary: List roles and permissions
+      operationId: listRoles
+      responses:
+        "200":
+          description: Roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoleSummary"
+    post:
+      tags: [Administration]
+      summary: Create or update a role
+      operationId: upsertRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleWriteRequest"
+      responses:
+        "200":
+          description: Saved role
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleSummary"
+
+  /admin/audit-logs:
+    get:
+      tags: [Administration]
+      summary: Query audit logs
+      operationId: queryAuditLogs
+      parameters:
+        - name: targetType
+          in: query
+          schema:
+            type: string
+        - name: actorUserId
+          in: query
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+      responses:
+        "200":
+          description: Audit log page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogPage"
+
+  /admin/analytics/summary:
+    get:
+      tags: [Reporting]
+      summary: Get operational CMS summary
+      operationId: getAnalyticsSummary
+      responses:
+        "200":
+          description: CMS operational summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ContentId:
+      name: contentId
+      in: path
+      required: true
+      schema:
+        type: string
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Caller lacks permission
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found or not visible to caller
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Resource state does not allow the requested action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ContentType:
+      type: string
+      enum: [KNOWLEDGE, DOCUMENT, NOTICE]
+    ContentStatus:
+      type: string
+      enum: [DRAFT, SUBMITTED, APPROVED, SCHEDULED, PUBLISHED, ARCHIVED, REJECTED]
+    UserSummary:
+      type: object
+      required: [id, email, displayName, roles, permissions]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        department:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleSummary"
+        permissions:
+          type: array
+          items:
+            type: string
+    RoleSummary:
+      type: object
+      required: [id, code, name, permissions]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    RoleWriteRequest:
+      type: object
+      required: [code, name, permissions]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    Category:
+      type: object
+      required: [id, name, slug, active]
+      properties:
+        id:
+          type: string
+        parentId:
+          type: string
+          nullable: true
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        sortOrder:
+          type: integer
+        active:
+          type: boolean
+    CategoryWriteRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        parentId:
+          type: string
+          nullable: true
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        sortOrder:
+          type: integer
+    ContentSummary:
+      type: object
+      required: [id, type, title, summary, status, category, owner, updatedAt]
+      properties:
+        id:
+          type: string
+        type:
+          $ref: "#/components/schemas/ContentType"
+        title:
+          type: string
+        summary:
+          type: string
+        status:
+          $ref: "#/components/schemas/ContentStatus"
+        category:
+          $ref: "#/components/schemas/Category"
+        owner:
+          $ref: "#/components/schemas/UserSummary"
+        tags:
+          type: array
+          items:
+            type: string
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+        acknowledgementRequired:
+          type: boolean
+    ContentDetail:
+      allOf:
+        - $ref: "#/components/schemas/ContentSummary"
+        - type: object
+          required: [body, versionNumber, attachments, audiences]
+          properties:
+            body:
+              type: string
+            versionNumber:
+              type: integer
+            attachments:
+              type: array
+              items:
+                $ref: "#/components/schemas/Attachment"
+            audiences:
+              type: array
+              items:
+                type: string
+            publishStartAt:
+              type: string
+              format: date-time
+              nullable: true
+            publishEndAt:
+              type: string
+              format: date-time
+              nullable: true
+            notice:
+              $ref: "#/components/schemas/NoticeSettings"
+    ContentCreateRequest:
+      type: object
+      required: [type, title, summary, body, categoryId, audienceIds]
+      properties:
+        type:
+          $ref: "#/components/schemas/ContentType"
+        title:
+          type: string
+          minLength: 1
+        summary:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        categoryId:
+          type: string
+        tagIds:
+          type: array
+          items:
+            type: string
+        audienceIds:
+          type: array
+          items:
+            type: string
+        notice:
+          $ref: "#/components/schemas/NoticeSettings"
+    ContentUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        body:
+          type: string
+        categoryId:
+          type: string
+        tagIds:
+          type: array
+          items:
+            type: string
+        audienceIds:
+          type: array
+          items:
+            type: string
+        changeNote:
+          type: string
+        notice:
+          $ref: "#/components/schemas/NoticeSettings"
+    Attachment:
+      type: object
+      required: [id, filename, mediaType, sizeBytes, uploadedAt]
+      properties:
+        id:
+          type: string
+        filename:
+          type: string
+        mediaType:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        checksum:
+          type: string
+        downloadUrl:
+          type: string
+          format: uri
+        uploadedAt:
+          type: string
+          format: date-time
+    NoticeSettings:
+      type: object
+      properties:
+        priority:
+          type: string
+          enum: [LOW, NORMAL, HIGH, URGENT]
+          default: NORMAL
+        requiresAcknowledgement:
+          type: boolean
+          default: false
+        acknowledgementDueAt:
+          type: string
+          format: date-time
+          nullable: true
+    NoticeRequiredItem:
+      type: object
+      required: [content, acknowledged]
+      properties:
+        content:
+          $ref: "#/components/schemas/ContentSummary"
+        acknowledged:
+          type: boolean
+        acknowledgedAt:
+          type: string
+          format: date-time
+          nullable: true
+    NoticeAcknowledgement:
+      type: object
+      required: [noticeId, userId, acknowledgedAt, contentVersionId]
+      properties:
+        noticeId:
+          type: string
+        userId:
+          type: string
+        acknowledgedAt:
+          type: string
+          format: date-time
+        contentVersionId:
+          type: string
+    LifecycleActionRequest:
+      type: object
+      properties:
+        note:
+          type: string
+    PublishRequest:
+      type: object
+      properties:
+        publishStartAt:
+          type: string
+          format: date-time
+          nullable: true
+        publishEndAt:
+          type: string
+          format: date-time
+          nullable: true
+        note:
+          type: string
+    ContentPage:
+      type: object
+      required: [items, page, size, totalItems, totalPages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentSummary"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+    SearchResults:
+      allOf:
+        - $ref: "#/components/schemas/ContentPage"
+        - type: object
+          properties:
+            query:
+              type: string
+    AuditLog:
+      type: object
+      required: [id, action, targetType, targetId, outcome, occurredAt]
+      properties:
+        id:
+          type: string
+        actor:
+          $ref: "#/components/schemas/UserSummary"
+        action:
+          type: string
+        targetType:
+          type: string
+        targetId:
+          type: string
+        outcome:
+          type: string
+          enum: [SUCCESS, FAILURE]
+        details:
+          type: object
+          additionalProperties: true
+        occurredAt:
+          type: string
+          format: date-time
+    AuditLogPage:
+      type: object
+      required: [items, page, size, totalItems]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalItems:
+          type: integer
+    AnalyticsSummary:
+      type: object
+      required: [publishedContentCount, draftContentCount, requiredNoticeCount, acknowledgementRate, recentAuditEventCount]
+      properties:
+        publishedContentCount:
+          type: integer
+        draftContentCount:
+          type: integer
+        requiredNoticeCount:
+          type: integer
+        acknowledgementRate:
+          type: number
+          format: double
+        recentAuditEventCount:
+          type: integer
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field:
+                type: string
+              message:
+                type: string

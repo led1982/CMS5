@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cms}
+      POSTGRES_USER: ${POSTGRES_USER:-cms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+    volumes:
+      - cms-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cms} -d ${POSTGRES_DB:-cms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/cms}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-cms}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-cms}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      APP_DEFAULT_USER_EMAIL: ${APP_DEFAULT_USER_EMAIL:-employee@example.com}
+      APP_UPLOAD_DIR: /var/cms/uploads
+    volumes:
+      - cms-uploads:/var/cms/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  cms-postgres-data:
+  cms-uploads:
