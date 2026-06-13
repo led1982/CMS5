@@ -212,7 +212,8 @@ public class ContentWorkflowService {
         content.publish(Instant.now(), request.publishStartAt(), request.publishEndAt());
         content = contentItemRepository.save(content);
         if (content.getType() == ContentType.ANNOUNCEMENT && content.isRequiresAcknowledgement()) {
-            acknowledgementTargetService.ifAvailable(service -> service.generateTargets(content));
+            ContentItem publishedContent = content;
+            acknowledgementTargetService.ifAvailable(service -> service.generateTargets(publishedContent));
         }
         auditPublisher.publish(actor, AuditAction.PUBLISH, content, "Content published.");
         observabilityService.workflowEvent("PUBLISH", content.getId().toString());
