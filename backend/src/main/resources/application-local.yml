@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${CMS_DB_URL:jdbc:postgresql://localhost:5432/cms}
+    username: ${CMS_DB_USERNAME:cms}
+    password: ${CMS_DB_PASSWORD:cms}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${CMS_OIDC_ISSUER_URI:http://localhost:9000}
+
+cms:
+  auth:
+    mock-enabled: ${CMS_AUTH_MOCK_ENABLED:true}
+  file-storage:
+    local-path: ${CMS_FILE_STORAGE_PATH:./var/uploads}
