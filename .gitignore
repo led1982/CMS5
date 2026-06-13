@@ -1,0 +1,9 @@
+.gradle/
+build/
+backend/build/
+frontend/dist/
+frontend/node_modules/
+frontend/test-results/
+frontend/playwright-report/
+var/
+.DS_Store

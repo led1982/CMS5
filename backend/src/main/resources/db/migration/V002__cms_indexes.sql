@@ -1,0 +1,11 @@
+CREATE INDEX idx_content_status_type_updated ON content_items (status, type, updated_at DESC);
+CREATE INDEX idx_content_publish_window ON content_items (publish_start_at, publish_end_at) WHERE status = 'PUBLISHED';
+CREATE INDEX idx_content_owner_department ON content_items (owner_department_id);
+CREATE INDEX idx_content_title_trgm ON content_items USING gin (title gin_trgm_ops);
+CREATE INDEX idx_content_versions_body_fts ON content_versions USING gin (to_tsvector('simple', body));
+CREATE INDEX idx_content_audiences_lookup ON content_audiences (visibility_type, target_id, content_id);
+CREATE INDEX idx_ack_content_status ON announcement_acknowledgements (content_id, acknowledged_at);
+CREATE INDEX idx_ack_user ON announcement_acknowledgements (user_id, acknowledged_at);
+CREATE INDEX idx_audit_action_created ON audit_logs (action, created_at DESC);
+CREATE INDEX idx_audit_target ON audit_logs (target_type, target_id);
+CREATE INDEX idx_view_events_content_time ON content_view_events (content_id, viewed_at DESC);

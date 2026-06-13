@@ -1,0 +1,77 @@
+openapi: 3.0.3
+info:
+  title: Internal CMS and Portal API
+  version: 0.1.0
+servers:
+  - url: /api/v1
+paths:
+  /portal/contents:
+    get:
+      summary: Search portal-visible content
+  /portal/contents/{contentId}:
+    get:
+      summary: Get portal content detail
+  /portal/announcements:
+    get:
+      summary: List pinned and required announcements
+  /portal/contents/{contentId}/acknowledgements:
+    post:
+      summary: Acknowledge a required announcement
+  /portal/contents/{contentId}/bookmarks:
+    post:
+      summary: Bookmark content
+    delete:
+      summary: Remove bookmark
+  /cms/contents:
+    get:
+      summary: List CMS content
+    post:
+      summary: Create draft content
+  /cms/contents/{contentId}:
+    get:
+      summary: Get CMS content
+    patch:
+      summary: Update CMS content
+  /cms/contents/{contentId}/submit:
+    post:
+      summary: Submit content for review
+  /cms/contents/{contentId}/review:
+    post:
+      summary: Approve or reject review content
+  /cms/contents/{contentId}/publish:
+    post:
+      summary: Publish reviewed content
+  /cms/contents/{contentId}/archive:
+    post:
+      summary: Archive content
+  /cms/contents/{contentId}/versions:
+    get:
+      summary: List content versions
+  /cms/contents/{contentId}/attachments:
+    post:
+      summary: Upload attachment metadata and file
+  /cms/announcements/{contentId}/acknowledgements:
+    get:
+      summary: Query acknowledgement report
+  /cms/categories:
+    get:
+      summary: List categories
+    post:
+      summary: Create category
+  /cms/tags:
+    get:
+      summary: List tags
+    post:
+      summary: Create tag
+  /admin/users:
+    get:
+      summary: List users
+  /admin/users/{userId}/roles:
+    patch:
+      summary: Replace user roles
+  /admin/audit-logs:
+    get:
+      summary: Search audit logs
+  /admin/metrics/content:
+    get:
+      summary: Get content metrics
