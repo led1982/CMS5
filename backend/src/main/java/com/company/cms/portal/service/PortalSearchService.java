@@ -93,13 +93,30 @@ public class PortalSearchService {
 
     private Comparator<ContentItem> comparator(String sort) {
         if ("MOST_VIEWED".equalsIgnoreCase(sort)) {
-            return Comparator.comparing(ContentItem::getViewCount).reversed();
+            return (left, right) -> Integer.compare(right.getViewCount(), left.getViewCount());
         }
+        Comparator<ContentItem> publishedAtDesc = this::comparePublishedAtDesc;
         if ("LATEST".equalsIgnoreCase(sort)) {
-            return Comparator.comparing(ContentItem::getPublishedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+            return publishedAtDesc;
         }
-        return Comparator
-            .comparing(ContentItem::isPinned).reversed()
-            .thenComparing(Comparator.comparing(ContentItem::getPublishedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+        return (left, right) -> {
+            int pinned = Boolean.compare(right.isPinned(), left.isPinned());
+            return pinned != 0 ? pinned : publishedAtDesc.compare(left, right);
+        };
+    }
+
+    private int comparePublishedAtDesc(ContentItem left, ContentItem right) {
+        Instant leftPublishedAt = left.getPublishedAt();
+        Instant rightPublishedAt = right.getPublishedAt();
+        if (leftPublishedAt == null && rightPublishedAt == null) {
+            return 0;
+        }
+        if (leftPublishedAt == null) {
+            return 1;
+        }
+        if (rightPublishedAt == null) {
+            return -1;
+        }
+        return rightPublishedAt.compareTo(leftPublishedAt);
     }
 }

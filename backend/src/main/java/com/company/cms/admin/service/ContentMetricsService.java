@@ -7,7 +7,6 @@ import com.company.cms.content.domain.ContentStatus;
 import com.company.cms.content.domain.ContentType;
 import com.company.cms.content.repository.ContentItemRepository;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class ContentMetricsService {
         List<TopContent> topViewed = contentItemRepository
             .findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "viewCount")))
             .stream()
-            .sorted(Comparator.comparing(com.company.cms.content.domain.ContentItem::getViewCount).reversed())
+            .sorted((left, right) -> Integer.compare(right.getViewCount(), left.getViewCount()))
             .map(content -> new TopContent(content.getId(), content.getTitle(), content.getViewCount()))
             .toList();
         long unacknowledged = contentItemRepository.findByStatusAndTypeOrderByPinnedDescPublishedAtDesc(
