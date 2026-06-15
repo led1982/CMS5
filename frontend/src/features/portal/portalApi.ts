@@ -1,11 +1,13 @@
 import { apiClient } from "../../services/apiClient";
-import { publishedContent, requiredNotices, searchContent, type ContentDetail, type ContentType } from "../../data/mockCms";
+import { bookmarkedContent, categories, publishedContent, requiredNotices, searchContent, type ContentDetail, type ContentType } from "../../data/mockCms";
 
 export function getPortalHome() {
   return {
     requiredNotices,
-    latestUpdates: publishedContent().slice(0, 3),
-    popularContent: [...publishedContent()].sort((a, b) => b.views - a.views).slice(0, 3)
+    latestUpdates: publishedContent().slice(0, 4),
+    bookmarks: bookmarkedContent().slice(0, 3),
+    popularContent: [...publishedContent()].sort((a, b) => b.views - a.views).slice(0, 3),
+    categoryShortcuts: categories
   };
 }
 

@@ -54,7 +54,7 @@ export function SearchResultsPage() {
           ))}
         </div>
       ) : (
-        <EmptyState title="검색 결과 없음" description="필터를 줄이거나 다른 키워드로 검색해 보세요." actionLabel="인기 콘텐츠" actionHref="/" />
+        <EmptyState title="검색 결과 없음" description="필터를 줄이거나 다른 키워드로 검색해 보세요." actionLabel="인기 콘텐츠" actionHref="/portal" />
       )}
     </>
   );

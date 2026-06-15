@@ -16,8 +16,8 @@ Expected:
 
 ## UI
 
-- First route `/` opens the portal home.
-- Portal home shows search, required notice, latest updates, popular knowledge, and category shortcuts.
+- First route `/` redirects to `/portal`.
+- Portal home shows search, required notice, latest updates, bookmarks, popular knowledge, and category shortcuts.
 - `/admin` redirects to forbidden for `EMPLOYEE` and opens the dashboard for `ADMIN`.
 - Content editor exposes edit, preview, and table-of-contents tabs.
 - Review queue exposes approval and rejection decision dialog.

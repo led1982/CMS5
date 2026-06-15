@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.company.cms.admin.domain.Category;
 import com.company.cms.analytics.ContentMetricRecorder;
 import com.company.cms.auth.AuthUser;
 import com.company.cms.content.domain.ContentEnums.ContentType;
@@ -28,6 +29,13 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/v1/portal")
 public class PortalController {
+    private static final List<Category> CATEGORY_SHORTCUTS = List.of(
+            new Category(UUID.fromString("10000000-0000-0000-0000-000000000001"), "Security", "security", "보안 정책과 사고 대응", 1),
+            new Category(UUID.fromString("10000000-0000-0000-0000-000000000002"), "Engineering", "engineering", "개발 표준과 릴리스 운영", 2),
+            new Category(UUID.fromString("10000000-0000-0000-0000-000000000003"), "HR", "hr", "인사 제도와 복리후생", 3),
+            new Category(UUID.fromString("10000000-0000-0000-0000-000000000004"), "Policy", "policy", "전사 운영 정책", 4)
+    );
+
     private final SearchService searchService;
     private final ContentService contentService;
     private final PortalVisibilityService visibilityService;
@@ -52,7 +60,9 @@ public class PortalController {
         return Map.of(
                 "requiredNotices", requiredNotices,
                 "latestUpdates", visible.stream().limit(5).toList(),
-                "popularContent", visible.stream().limit(5).toList()
+                "bookmarks", bookmarkService.list(user).stream().limit(5).toList(),
+                "popularContent", visible.stream().limit(5).toList(),
+                "categoryShortcuts", CATEGORY_SHORTCUTS
         );
     }
 

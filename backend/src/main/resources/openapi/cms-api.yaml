@@ -1060,13 +1060,17 @@ components:
 
     PortalHomeResponse:
       type: object
-      required: [requiredNotices, latestUpdates, popularContent, categoryShortcuts]
+      required: [requiredNotices, latestUpdates, bookmarks, popularContent, categoryShortcuts]
       properties:
         requiredNotices:
           type: array
           items:
             $ref: "#/components/schemas/NoticeSummary"
         latestUpdates:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentSummary"
+        bookmarks:
           type: array
           items:
             $ref: "#/components/schemas/ContentSummary"

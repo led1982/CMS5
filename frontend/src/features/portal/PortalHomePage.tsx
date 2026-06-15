@@ -1,8 +1,8 @@
-import { Bell, Search, Sparkles } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { Bell, Bookmark, Clock3, FileText, Search, Sparkles } from "lucide-react";
+import { type FormEvent, type ReactNode, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ContentCard } from "../../components/cms/ContentCard";
-import { categories } from "../../data/mockCms";
+import { ContentTypeBadge } from "../../components/cms/StatusBadge";
+import type { ContentSummary } from "../../data/mockCms";
 import { getPortalHome } from "./portalApi";
 
 export function PortalHomePage() {
@@ -17,94 +17,130 @@ export function PortalHomePage() {
 
   return (
     <>
-      <section className="hero-search">
-        <div className="badge-row">
-          <span className="badge primary">확인 필요 공지 {home.requiredNotices.length}</span>
-          <span className="badge secondary">통합 검색</span>
+      <section className="portal-home-grid" aria-label="Portal dashboard">
+        <div className="panel portal-search-panel">
+          <div>
+            <div className="badge-row">
+              <span className="badge primary">확인 필요 {home.requiredNotices.length}</span>
+              <span className="badge secondary">북마크 {home.bookmarks.length}</span>
+            </div>
+            <h1 className="page-title">포털 홈</h1>
+            <p className="page-subtitle">중요 공지, 최근 콘텐츠, 북마크를 한 화면에서 확인합니다.</p>
+          </div>
+          <form className="search-form dashboard-search" onSubmit={submit}>
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="문서, 정책, 공지 검색" aria-label="Search content" />
+            <button className="btn primary" type="submit">
+              <Search size={18} aria-hidden="true" />
+              Search
+            </button>
+          </form>
+          <div className="portal-metrics" aria-label="Portal content summary">
+            <Metric icon={<Bell size={18} aria-hidden="true" />} label="공지" value={home.requiredNotices.length} />
+            <Metric icon={<Clock3 size={18} aria-hidden="true" />} label="최근" value={home.latestUpdates.length} />
+            <Metric icon={<Bookmark size={18} aria-hidden="true" />} label="북마크" value={home.bookmarks.length} />
+          </div>
         </div>
-        <h1>사내 지식과 공지를 한 곳에서 찾습니다</h1>
-        <p>발행된 문서, 정책, 운영 런북, 중요 공지를 권한에 맞게 검색하고 열람할 수 있습니다.</p>
-        <form className="search-form" onSubmit={submit}>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="무엇을 찾고 있나요?" aria-label="Search content" />
-          <button className="btn primary" type="submit">
-            <Search size={18} aria-hidden="true" />
-            Search
-          </button>
-        </form>
-      </section>
 
-      <section className="section">
-        <div className="section-header">
-          <h2>확인 필요 공지</h2>
-          <Link className="btn secondary" to="/notices">
-            <Bell size={16} aria-hidden="true" />
-            공지 센터
-          </Link>
+        <div className="panel dashboard-panel portal-notice-panel">
+          <div className="section-header compact">
+            <h2>중요 공지</h2>
+            <Link className="btn secondary icon-btn" to="/notices" aria-label="공지 센터">
+              <Bell size={16} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="stack-list">
+            {home.requiredNotices.map((notice) => (
+              <DashboardListItem key={notice.id} item={notice} meta="확인 필요" />
+            ))}
+          </div>
         </div>
-        <div className="grid two">
-          {home.requiredNotices.map((notice) => (
-            <ContentCard key={notice.id} item={notice} to={`/content/${notice.id}`} />
-          ))}
+
+        <div className="panel dashboard-panel portal-recent-panel">
+          <div className="section-header compact">
+            <h2>최근 콘텐츠</h2>
+            <span className="badge neutral">{home.latestUpdates.length}건</span>
+          </div>
+          <div className="stack-list">
+            {home.latestUpdates.map((item) => (
+              <DashboardListItem key={item.id} item={item} meta={new Date(item.updatedAt).toLocaleDateString("ko-KR")} />
+            ))}
+          </div>
+        </div>
+
+        <div className="panel dashboard-panel portal-bookmark-panel">
+          <div className="section-header compact">
+            <h2>북마크</h2>
+            <Link className="btn secondary icon-btn" to="/bookmarks" aria-label="북마크">
+              <Bookmark size={16} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="stack-list">
+            {home.bookmarks.map((item) => (
+              <DashboardListItem key={item.id} item={item} meta={item.category.name} />
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="section grid two">
-        <div>
-          <div className="section-header">
-            <h2>최근 업데이트</h2>
-          </div>
-          <div className="grid">
-            {home.latestUpdates.map((item) => (
-              <ContentCard key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-        <div>
-          <div className="section-header">
+        <div className="panel dashboard-panel">
+          <div className="section-header compact">
             <h2>인기 지식</h2>
             <span className="badge accent">
               <Sparkles size={14} aria-hidden="true" />
               Popular
             </span>
           </div>
-          <div className="panel">
-            <table>
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Views</th>
-                </tr>
-              </thead>
-              <tbody>
-                {home.popularContent.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <Link to={`/content/${item.id}`}>{item.title}</Link>
-                    </td>
-                    <td>{item.category.name}</td>
-                    <td>{item.views}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="stack-list">
+            {home.popularContent.map((item) => (
+              <DashboardListItem key={item.id} item={item} meta={`${item.views.toLocaleString("ko-KR")} views`} />
+            ))}
+          </div>
+        </div>
+
+        <div className="panel dashboard-panel">
+          <div className="section-header compact">
+            <h2>추천 카테고리</h2>
+          </div>
+          <div className="category-shortcuts">
+            {home.categoryShortcuts.map((category) => (
+              <Link key={category.id} className="category-shortcut" to={`/search?category=${category.id}`}>
+                <span>{category.name}</span>
+                <small>{category.description}</small>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
-
-      <section className="section">
-        <div className="section-header">
-          <h2>추천 카테고리</h2>
-        </div>
-        <div className="grid four">
-          {categories.map((category) => (
-            <Link key={category.id} className="card" to={`/search?category=${category.id}`}>
-              <h3 className="card-title">{category.name}</h3>
-              <p className="muted">{category.description}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
     </>
+  );
+}
+
+function Metric({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
+  return (
+    <div className="portal-metric">
+      {icon}
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function DashboardListItem({ item, meta }: { item: ContentSummary; meta: string }) {
+  return (
+    <Link className="dashboard-list-item" to={`/content/${item.id}`}>
+      <span className="dashboard-list-icon">
+        <FileText size={16} aria-hidden="true" />
+      </span>
+      <span className="dashboard-list-copy">
+        <span className="badge-row">
+          <ContentTypeBadge type={item.contentType} />
+          {item.isImportant ? <span className="badge primary">IMPORTANT</span> : null}
+        </span>
+        <strong>{item.title}</strong>
+        <span className="muted">{item.summary}</span>
+      </span>
+      <span className="dashboard-list-meta">{meta}</span>
+    </Link>
   );
 }
