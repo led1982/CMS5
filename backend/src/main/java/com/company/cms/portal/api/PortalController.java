@@ -28,6 +28,13 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/v1/portal")
 public class PortalController {
+    private static final List<Map<String, Object>> CATEGORY_SHORTCUTS = List.of(
+            categoryShortcut("10000000-0000-0000-0000-000000000001", "Security", "security", "보안 정책과 사고 대응", 1),
+            categoryShortcut("10000000-0000-0000-0000-000000000002", "Engineering", "engineering", "개발 표준과 릴리스 운영", 2),
+            categoryShortcut("10000000-0000-0000-0000-000000000003", "HR", "hr", "인사 제도와 복리후생", 3),
+            categoryShortcut("10000000-0000-0000-0000-000000000004", "Policy", "policy", "전사 운영 정책", 4)
+    );
+
     private final SearchService searchService;
     private final ContentService contentService;
     private final PortalVisibilityService visibilityService;
@@ -52,7 +59,9 @@ public class PortalController {
         return Map.of(
                 "requiredNotices", requiredNotices,
                 "latestUpdates", visible.stream().limit(5).toList(),
-                "popularContent", visible.stream().limit(5).toList()
+                "popularContent", visible.stream().limit(5).toList(),
+                "bookmarkedContent", bookmarkService.list(user).stream().limit(5).toList(),
+                "categoryShortcuts", CATEGORY_SHORTCUTS
         );
     }
 
@@ -88,5 +97,16 @@ public class PortalController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void removeBookmark(@PathVariable UUID contentId, @AuthenticationPrincipal AuthUser user) {
         bookmarkService.remove(user, contentId);
+    }
+
+    private static Map<String, Object> categoryShortcut(String id, String name, String slug, String description, int sortOrder) {
+        return Map.of(
+                "id", UUID.fromString(id),
+                "name", name,
+                "slug", slug,
+                "description", description,
+                "sortOrder", sortOrder,
+                "isActive", true
+        );
     }
 }

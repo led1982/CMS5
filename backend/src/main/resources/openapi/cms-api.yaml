@@ -1060,7 +1060,7 @@ components:
 
     PortalHomeResponse:
       type: object
-      required: [requiredNotices, latestUpdates, popularContent, categoryShortcuts]
+      required: [requiredNotices, latestUpdates, popularContent, bookmarkedContent, categoryShortcuts]
       properties:
         requiredNotices:
           type: array
@@ -1071,6 +1071,10 @@ components:
           items:
             $ref: "#/components/schemas/ContentSummary"
         popularContent:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentSummary"
+        bookmarkedContent:
           type: array
           items:
             $ref: "#/components/schemas/ContentSummary"

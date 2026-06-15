@@ -53,7 +53,7 @@ export function ForbiddenState() {
       <Lock size={42} aria-hidden="true" />
       <h1>권한이 없습니다</h1>
       <p className="muted">요청한 화면에 접근할 수 있는 역할이 현재 계정에 없습니다.</p>
-      <Link className="btn primary" to="/">
+      <Link className="btn primary" to="/portal">
         포털 홈
       </Link>
     </div>
@@ -66,7 +66,7 @@ export function NotFoundState() {
       <SearchX size={42} aria-hidden="true" />
       <h1>찾을 수 없습니다</h1>
       <p className="muted">콘텐츠가 삭제되었거나 접근 가능한 경로가 아닙니다.</p>
-      <Link className="btn primary" to="/">
+      <Link className="btn primary" to="/portal">
         포털 홈
       </Link>
     </div>

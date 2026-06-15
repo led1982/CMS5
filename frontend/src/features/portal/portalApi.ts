@@ -1,20 +1,17 @@
 import { apiClient } from "../../services/apiClient";
-import { publishedContent, requiredNotices, searchContent, type ContentDetail, type ContentType } from "../../data/mockCms";
+import { publishedContent, searchContent, type ContentDetail, type ContentType } from "../../data/mockCms";
+import { buildPortalHomeDashboard } from "./portalHomeModel";
 
 export function getPortalHome() {
-  return {
-    requiredNotices,
-    latestUpdates: publishedContent().slice(0, 3),
-    popularContent: [...publishedContent()].sort((a, b) => b.views - a.views).slice(0, 3)
-  };
+  return buildPortalHomeDashboard();
 }
 
 export function getPortalContent(contentId: string): ContentDetail | undefined {
   return publishedContent().find((item) => item.id === contentId);
 }
 
-export function getSearchResults(query: string, contentType?: ContentType) {
-  return searchContent(query, contentType);
+export function getSearchResults(query: string, contentType?: ContentType, categoryId?: string) {
+  return searchContent(query, contentType, categoryId);
 }
 
 export const portalApi = {
