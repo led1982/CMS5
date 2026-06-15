@@ -4,7 +4,7 @@ import { useCurrentUser } from "../../app/providers/AppProviders";
 import type { RoleCode } from "../../data/mockCms";
 
 const portalLinks = [
-  { to: "/", label: "Portal", icon: Home },
+  { to: "/portal", label: "Portal", icon: Home },
   { to: "/search", label: "Search", icon: Library },
   { to: "/notices", label: "Notices", icon: Bell },
   { to: "/bookmarks", label: "Bookmarks", icon: BookMarked }
@@ -31,7 +31,7 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <NavLink to="/" className="brand">
+        <NavLink to="/portal" className="brand">
           <span className="brand-mark">C</span>
           <span>Company CMS</span>
         </NavLink>

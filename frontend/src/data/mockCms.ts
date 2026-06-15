@@ -167,6 +167,13 @@ export const requiredNotices: NoticeSummary[] = [
   }
 ];
 
+const bookmarkedContentIds = ["content-password-policy", "content-release-runbook"];
+
+export function bookmarkedContent() {
+  const visibleContent = new Map(publishedContent().map((item) => [item.id, item]));
+  return bookmarkedContentIds.map((id) => visibleContent.get(id)).filter((item): item is ContentDetail => Boolean(item));
+}
+
 export const auditLogs = [
   { id: "audit-1", actor: "콘텐츠 편집자", action: "CONTENT_SUBMITTED", target: "API 스타일 가이드 초안", summary: "검토자에게 승인 요청", createdAt: "2026-06-13T03:21:00Z" },
   { id: "audit-2", actor: "Security Ops", action: "CONTENT_PUBLISHED", target: "분기 보안 교육 확인 요청", summary: "전 임직원 대상 공지 발행", createdAt: "2026-06-13T01:30:00Z" },
@@ -177,11 +184,12 @@ export function publishedContent() {
   return contents.filter((item) => item.status === "PUBLISHED");
 }
 
-export function searchContent(query: string, type?: ContentType) {
+export function searchContent(query: string, type?: ContentType, categoryId?: string) {
   const normalized = query.trim().toLowerCase();
   return publishedContent().filter((item) => {
     const matchesQuery = !normalized || [item.title, item.summary, item.body, item.category.name, item.tags.join(" ")].join(" ").toLowerCase().includes(normalized);
     const matchesType = !type || item.contentType === type;
-    return matchesQuery && matchesType;
+    const matchesCategory = !categoryId || item.category.id === categoryId;
+    return matchesQuery && matchesType && matchesCategory;
   });
 }
