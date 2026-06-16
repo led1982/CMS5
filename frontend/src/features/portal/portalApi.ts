@@ -21,6 +21,12 @@ export function getSearchResults(query: string, contentType?: ContentType) {
 
 export const portalApi = {
   home: () => apiClient("/api/v1/portal/home"),
-  search: (query: string) => apiClient(`/api/v1/portal/search?q=${encodeURIComponent(query)}`),
+  search: (query: string, contentType?: ContentType) => {
+    const params = new URLSearchParams({ q: query });
+    if (contentType) {
+      params.set("contentType", contentType);
+    }
+    return apiClient(`/api/v1/portal/search?${params.toString()}`);
+  },
   content: (contentId: string) => apiClient(`/api/v1/portal/content/${contentId}`)
 };

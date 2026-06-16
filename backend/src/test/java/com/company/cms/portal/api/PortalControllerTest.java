@@ -2,6 +2,7 @@ package com.company.cms.portal.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -45,6 +46,22 @@ class PortalControllerTest {
         assertThat(home.get("latestUpdates")).isEqualTo(List.of(notice, article));
         assertThat(home.get("bookmarks")).isEqualTo(List.of(article));
         assertThat((List<?>) home.get("categoryShortcuts")).isNotEmpty();
+    }
+
+    @Test
+    void searchAppliesContentTypeFilterAndReturnsResultCount() {
+        AuthUser user = new AuthUser(UUID.randomUUID(), "employee@example.com", "일반 사용자", "Engineering", Set.of(RoleCode.EMPLOYEE));
+        ContentItem notice = content("분기 보안 교육 확인 요청", ContentType.NOTICE, true);
+
+        when(searchService.search(user, "security", ContentType.NOTICE)).thenReturn(List.of(notice));
+
+        Map<String, Object> response = controller.search("security", ContentType.NOTICE, user);
+
+        assertThat(response).containsEntry("query", "security");
+        assertThat(response).containsEntry("resultCount", 1);
+        assertThat(response.get("items")).isEqualTo(List.of(notice));
+        verify(searchService).search(user, "security", ContentType.NOTICE);
+        verify(metricRecorder).recordSearch(user, "security", 1);
     }
 
     private ContentItem content(String title, ContentType type, boolean requiresAcknowledgement) {
