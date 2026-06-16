@@ -177,6 +177,11 @@ export function publishedContent() {
   return contents.filter((item) => item.status === "PUBLISHED");
 }
 
+export function bookmarkedContent() {
+  const bookmarkedIds = new Set(["content-password-policy", "content-release-runbook"]);
+  return publishedContent().filter((item) => bookmarkedIds.has(item.id));
+}
+
 export function searchContent(query: string, type?: ContentType) {
   const normalized = query.trim().toLowerCase();
   return publishedContent().filter((item) => {

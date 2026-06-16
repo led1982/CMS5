@@ -22,7 +22,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={<PortalHomePage />} />
+        <Route index element={<Navigate to="/portal" replace />} />
+        <Route path="portal" element={<PortalHomePage />} />
         <Route path="search" element={<SearchResultsPage />} />
         <Route path="content/:contentId" element={<ContentDetailPage />} />
         <Route path="notices" element={<NoticeCenterPage />} />
@@ -118,7 +119,7 @@ export function AppRoutes() {
         />
         <Route
           path="login/callback"
-          element={<EmptyState title="로그인 완료" description="프로필과 권한을 확인했습니다." actionLabel="포털 홈" actionHref="/" />}
+          element={<EmptyState title="로그인 완료" description="프로필과 권한을 확인했습니다." actionLabel="포털 홈" actionHref="/portal" />}
         />
         <Route path="404" element={<NotFoundState />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
